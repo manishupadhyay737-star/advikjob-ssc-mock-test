@@ -1,0 +1,50 @@
+name: Build WordPress Plugin ZIP
+
+on:
+  push:
+    branches:
+      - feature/ssc-mock-test-mvp
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  validate-and-package:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.2'
+          tools: none
+
+      - name: Check PHP syntax
+        run: php -l wordpress-plugin/advikjob-ssc-mock-test/advikjob-ssc-mock-test.php
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Check JavaScript syntax
+        run: node --check wordpress-plugin/advikjob-ssc-mock-test/assets/quiz.js
+
+      - name: Package installable plugin ZIP
+        run: |
+          mkdir -p dist
+          cd wordpress-plugin
+          zip -r ../dist/advikjob-ssc-mock-test.zip advikjob-ssc-mock-test
+          cd ..
+          unzip -l dist/advikjob-ssc-mock-test.zip
+
+      - name: Upload plugin ZIP
+        uses: actions/upload-artifact@v4
+        with:
+          name: advikjob-ssc-mock-test
+          path: dist/advikjob-ssc-mock-test.zip
+          if-no-files-found: error
+          retention-days: 14
